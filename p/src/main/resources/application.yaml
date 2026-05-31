@@ -1,3 +1,27 @@
+server:
+  port: 8080
+
 spring:
   application:
     name: gateway
+
+# Configuração dos clients gRPC (net.devh).
+# Os módulos A (voos) e B (hotéis) ainda não existem — channels são criados
+# de forma lazy, então a aplicação sobe normalmente mesmo com A/B offline.
+grpc:
+  client:
+    flight-service:
+      address: 'static://localhost:5001'
+      negotiation-type: plaintext
+    hotel-service:
+      address: 'static://localhost:5002'
+      negotiation-type: plaintext
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      show-details: always
