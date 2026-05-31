@@ -1,0 +1,204 @@
+// =============================================================================
+//  travel.proto — Contrato gRPC do projeto PSPD (UnB/FCTE)
+//  Aplicação: Busca e combinação de pacotes de viagem (voos + hotéis)
+//
+//  Arquitetura:
+//    P (Java/Spring Boot)   — Gateway: expõe REST ao browser e chama A e B via gRPC
+//    A (TypeScript/Node)    — FlightService: catálogo de voos
+//    B (TypeScript/Node)    — HotelService:  catálogo de hotéis
+//
+//  Cobertura dos tipos de comunicação gRPC do item B.1 do enunciado:
+//    - unary             → SearchFlights / SearchHotels / SearchPackages
+//    - server-streaming  → StreamFlights
+//    - client-streaming  → BulkSearchHotels
+//    - bidirectional     → ChatService.Chat (exemplo isolado para o item B.1)
+//
+//  Organização deste arquivo:
+//    1) Mensagens comuns
+//    2) FlightService            ← aplicação principal (B.2)
+//    3) HotelService             ← aplicação principal (B.2)
+//    4) TravelPackageService     ← aplicação principal (B.2)
+//    5) ChatService              ← demonstração isolada do item B.1
+// =============================================================================
+
+syntax = "proto3";
+
+package travel.v1;
+
+// --- Opções específicas para geração de código ---
+// Java: gera classes separadas no pacote configurado abaixo.
+// TypeScript/Node: a geração via ts-proto não usa option no .proto — a config
+// fica no script de build (package.json), apontando para este arquivo.
+option java_multiple_files  = true;
+option java_package         = "br.unb.pspd.travel.proto";
+option java_outer_classname = "TravelProto";
+
+import "google/protobuf/timestamp.proto";
+
+// =============================================================================
+//  1) Mensagens comuns
+// =============================================================================
+
+// Representação monetária sem usar float (evita erros de precisão).
+// Ex.: R$ 1.234,56  →  { currency: "BRL", amount_cents: 123456 }
+message Money {
+  string currency     = 1; // ISO 4217: "BRL", "USD", "EUR"
+  int64  amount_cents = 2;
+}
+
+// =============================================================================
+//  2) FlightService — Módulo A (TypeScript/Node)
+//     Aplicação principal (B.2)
+// =============================================================================
+
+service FlightService {
+  // Busca padrão: uma requisição, uma resposta com a lista completa. (unary)
+  rpc SearchFlights (FlightSearchRequest) returns (FlightSearchResponse);
+
+  // Streaming do servidor: envia voo a voo conforme encontrados.
+  // Útil quando o catálogo é grande e queremos exibir resultados parciais.
+  rpc StreamFlights (FlightSearchRequest) returns (stream Flight);
+}
+
+message FlightSearchRequest {
+  string origin      = 1;  // Código IATA, ex.: "BSB"
+  string destination = 2;  // Código IATA, ex.: "GIG"
+  google.protobuf.Timestamp departure_date = 3;
+  int32 passengers   = 4;
+  optional Money max_price = 5;  // filtro opcional
+}
+
+message FlightSearchResponse {
+  repeated Flight flights = 1;
+  int32 total_found       = 2;
+}
+
+message Flight {
+  string flight_id   = 1;
+  string airline     = 2;
+  string origin      = 3;
+  string destination = 4;
+  google.protobuf.Timestamp departure_time = 5;
+  google.protobuf.Timestamp arrival_time   = 6;
+  int32  duration_minutes = 7;
+  Money  price            = 8;
+  int32  available_seats  = 9;
+}
+
+// =============================================================================
+//  3) HotelService — Módulo B (TypeScript/Node)
+//     Aplicação principal (B.2)
+// =============================================================================
+
+service HotelService {
+  // Busca padrão. (unary)
+  rpc SearchHotels (HotelSearchRequest) returns (HotelSearchResponse);
+
+  // Streaming do cliente: o gateway pode enviar várias buscas (ex.: várias
+  // cidades de uma vez) e receber uma resposta agregada ao final.
+  rpc BulkSearchHotels (stream HotelSearchRequest) returns (HotelSearchResponse);
+}
+
+message HotelSearchRequest {
+  string city = 1;
+  google.protobuf.Timestamp check_in  = 2;
+  google.protobuf.Timestamp check_out = 3;
+  int32 guests = 4;
+  optional int32 min_stars            = 5;
+  optional Money max_price_per_night  = 6;
+}
+
+message HotelSearchResponse {
+  repeated Hotel hotels = 1;
+  int32 total_found     = 2;
+}
+
+message Hotel {
+  string hotel_id = 1;
+  string name     = 2;
+  string city     = 3;
+  int32  stars    = 4;
+  Money  price_per_night    = 5;
+  int32  available_rooms    = 6;
+  repeated string amenities = 7;  // "wifi", "pool", "breakfast"
+}
+
+// =============================================================================
+//  4) TravelPackageService — Módulo P (Java/Spring Boot)
+//     Aplicação principal (B.2)
+//
+//  Exposto internamente para fins de teste/demonstração; o browser fala REST
+//  com P. Mantém apenas a chamada unary principal — a demonstração de
+//  bidirectional streaming exigida pelo item B.1 fica no ChatService logo
+//  abaixo, como exemplo isolado (o fluxo de busca de pacotes não tem encaixe
+//  natural para bidi).
+// =============================================================================
+
+service TravelPackageService {
+  // Busca principal do usuário: P consulta A e B em paralelo, combina e ordena.
+  rpc SearchPackages (PackageSearchRequest) returns (PackageSearchResponse);
+}
+
+message PackageSearchRequest {
+  string origin      = 1;
+  string destination = 2;
+  google.protobuf.Timestamp departure_date = 3;
+  google.protobuf.Timestamp return_date    = 4;
+  int32 travelers = 5;
+
+  optional Money max_total_price = 6;
+  optional int32 min_hotel_stars = 7;
+
+  // Limite de combinações no resultado (evita explosão cartesiana).
+  // Recomendado: 50–100.
+  int32 max_results = 8;
+}
+
+message PackageSearchResponse {
+  repeated TravelPackage packages = 1;
+
+  // Métricas úteis para o relatório e para o teste de performance.
+  int32 total_combinations_evaluated = 2;
+  int64 search_time_ms               = 3;
+}
+
+message TravelPackage {
+  string package_id = 1;
+
+  Flight outbound_flight = 2;
+  Flight return_flight   = 3;
+  Hotel  hotel           = 4;
+
+  int32 nights      = 5;
+  Money total_price = 6;
+}
+
+// =============================================================================
+//  5) ChatService — Demonstração isolada (item B.1 do enunciado)
+//
+//  Por que está aqui:
+//    O item B.1 exige os 4 tipos de comunicação gRPC. Os outros 3 (unary,
+//    server-streaming e client-streaming) já são exercitados naturalmente
+//    pelos serviços da aplicação principal (acima). O quarto tipo
+//    (bidirectional) não tem encaixe natural no fluxo de busca de pacotes,
+//    e o enunciado permite "exemplos isolados". Optamos pelo caso clássico
+//    de chat em tempo real, que é enxuto e fácil de demonstrar.
+//
+//  Implementação sugerida:
+//    Um cliente e um servidor pequenos, em qualquer linguagem da stack,
+//    apenas para gerar prints da execução e incluir no relatório.
+//    NÃO faz parte da aplicação principal.
+// =============================================================================
+
+service ChatService {
+  // Fluxos simultâneos nos dois sentidos: cliente envia mensagens conforme
+  // o usuário digita; servidor envia mensagens recebidas de outros usuários
+  // sem aguardar a próxima requisição do cliente.
+  rpc Chat (stream ChatMessage) returns (stream ChatMessage);
+}
+
+message ChatMessage {
+  string user      = 1;  // nome do remetente
+  string text      = 2;  // conteúdo da mensagem
+  int64  timestamp = 3;  // unix epoch em milissegundos
+}
