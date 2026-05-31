@@ -1,0 +1,38 @@
+# Sobe a stack gRPC completa: FlightService (A), HotelService (B), Gateway (P) e frontend.
+#   docker compose up --build      # sobe tudo
+#   docker compose down            # encerra tudo
+services:
+  flight:
+    build: ./a
+    container_name: flight-service
+    expose:
+      - "50051"
+
+  hotel:
+    build: ./b
+    container_name: hotel-service
+    expose:
+      - "50052"
+
+  gateway:
+    build:
+      context: .
+      dockerfile: p/Dockerfile
+    container_name: gateway
+    ports:
+      - "8080:8080"
+    environment:
+      # Endereços dos serviços gRPC pelos nomes de serviço da rede do compose.
+      FLIGHT_SERVICE_ADDRESS: static://flight:50051
+      HOTEL_SERVICE_ADDRESS: static://hotel:50052
+    depends_on:
+      - flight
+      - hotel
+
+  frontend:
+    build: ./hclient
+    container_name: hclient
+    ports:
+      - "5500:80"
+    depends_on:
+      - gateway

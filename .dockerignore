@@ -1,0 +1,12 @@
+# Context do build do gateway = raiz do repo. Mantém só proto/ e p/ (sem build).
+.git
+.gradle
+.venv
+**/build
+**/.gradle
+a
+b
+demo
+docs
+hclient
+*.md

@@ -1,0 +1,17 @@
+// Demo isolado do gRPC bidirecional (item B.1 do enunciado PSPD).
+// ChatService demonstra streaming full-duplex: cliente e servidor trocam
+// mensagens simultaneamente sobre o mesmo stream.
+syntax = "proto3";
+
+package demo.v1;
+
+service ChatService {
+  // Bidirecional: stream de entrada e stream de saída ao mesmo tempo.
+  rpc Chat (stream ChatMessage) returns (stream ChatMessage);
+}
+
+message ChatMessage {
+  string user      = 1;
+  string text      = 2;
+  int64  timestamp = 3;
+}

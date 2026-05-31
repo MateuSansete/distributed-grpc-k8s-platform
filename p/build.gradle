@@ -24,10 +24,14 @@ dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-web'
 
 	// --- gRPC (Rota B / net.devh — Spring Boot 3.5.x) ---
+	// BOM alinha TODOS os artefatos io.grpc na mesma versão (1.63.0, a que o
+	// net.devh 3.1.0 traz). Sem isso, grpc-core sobe para 1.63.0 enquanto
+	// netty-shaded fica em 1.62.2 → NoSuchMethodError no transporte do client.
+	implementation platform('io.grpc:grpc-bom:1.63.0')
 	implementation 'net.devh:grpc-spring-boot-starter:3.1.0.RELEASE'
-	implementation 'io.grpc:grpc-netty-shaded:1.62.2'
-	implementation 'io.grpc:grpc-protobuf:1.62.2'
-	implementation 'io.grpc:grpc-stub:1.62.2'
+	implementation 'io.grpc:grpc-netty-shaded'
+	implementation 'io.grpc:grpc-protobuf'
+	implementation 'io.grpc:grpc-stub'
 	implementation 'com.google.protobuf:protobuf-java:3.25.1'
 	implementation 'javax.annotation:javax.annotation-api:1.3.2'
 
@@ -46,7 +50,7 @@ protobuf {
 	}
 	plugins {
 		grpc {
-			artifact = 'io.grpc:protoc-gen-grpc-java:1.62.2'
+			artifact = 'io.grpc:protoc-gen-grpc-java:1.63.0'
 		}
 	}
 	generateProtoTasks {

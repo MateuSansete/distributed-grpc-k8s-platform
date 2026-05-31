@@ -55,7 +55,10 @@ class FlightServiceServicer(travel_pb2_grpc.FlightServiceServicer):
                 continue
             if request.passengers > 0 and f.available_seats < request.passengers:
                 continue
-            if req_date and f.departure_time.ToDatetime().date() != req_date:
+            # Casamento "na data ou depois": evita exigir match exato de dia
+            # (os 500 voos mock estão espalhados aleatoriamente em ~30 dias,
+            # então igualdade estrita quase sempre retornava zero voos).
+            if req_date and f.departure_time.ToDatetime().date() < req_date:
                 continue
             if request.HasField("max_price") and f.price.amount_cents > request.max_price.amount_cents:
                 continue

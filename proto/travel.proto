@@ -4,8 +4,8 @@
 //
 //  Arquitetura:
 //    P (Java/Spring Boot)   — Gateway: expõe REST ao browser e chama A e B via gRPC
-//    A (TypeScript/Node)    — FlightService: catálogo de voos
-//    B (TypeScript/Node)    — HotelService:  catálogo de hotéis
+//    A (Python)    — FlightService: catálogo de voos
+//    B (Python)    — HotelService:  catálogo de hotéis
 //
 //  Cobertura dos tipos de comunicação gRPC do item B.1 do enunciado:
 //    - unary             → SearchFlights / SearchHotels / SearchPackages
@@ -27,7 +27,7 @@ package travel.v1;
 
 // --- Opções específicas para geração de código ---
 // Java: gera classes separadas no pacote configurado abaixo.
-// TypeScript/Node: a geração via ts-proto não usa option no .proto — a config
+// Python: a geração via ts-proto não usa option no .proto — a config
 // fica no script de build (package.json), apontando para este arquivo.
 option java_multiple_files  = true;
 option java_package         = "br.unb.pspd.travel.proto";
@@ -47,7 +47,7 @@ message Money {
 }
 
 // =============================================================================
-//  2) FlightService — Módulo A (TypeScript/Node)
+//  2) FlightService — Módulo A (Python)
 //     Aplicação principal (B.2)
 // =============================================================================
 
@@ -86,7 +86,7 @@ message Flight {
 }
 
 // =============================================================================
-//  3) HotelService — Módulo B (TypeScript/Node)
+//  3) HotelService — Módulo B (Python)
 //     Aplicação principal (B.2)
 // =============================================================================
 

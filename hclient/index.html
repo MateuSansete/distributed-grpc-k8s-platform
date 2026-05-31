@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Busca de Pacotes de Viagem — PSPD</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <main class="container">
+    <header>
+      <h1>✈️ Busca de Pacotes de Viagem</h1>
+      <p class="subtitle">Gateway gRPC (P) combinando voos (A) × hotéis (B)</p>
+    </header>
+
+    <form id="search-form" class="card">
+      <div class="grid">
+        <label>
+          Origem
+          <select id="origin" name="origin" required></select>
+        </label>
+        <label>
+          Destino
+          <select id="destination" name="destination" required></select>
+        </label>
+        <label>
+          Data de ida
+          <input type="date" id="departureDate" name="departureDate" required>
+        </label>
+        <label>
+          Data de volta
+          <input type="date" id="returnDate" name="returnDate" required>
+        </label>
+        <label>
+          Viajantes
+          <input type="number" id="travelers" name="travelers" min="1" value="2" required>
+        </label>
+        <label>
+          Máx. resultados
+          <input type="number" id="maxResults" name="maxResults" min="1" value="20">
+        </label>
+      </div>
+      <button type="submit" id="submit-btn">Buscar pacotes</button>
+    </form>
+
+    <section id="status" class="status" hidden></section>
+
+    <section id="meta" class="meta" hidden></section>
+
+    <section id="results" hidden>
+      <table id="results-table">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Voo</th>
+            <th>Rota / Horário</th>
+            <th>Hotel</th>
+            <th>Noites</th>
+            <th class="num">Preço total</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </section>
+  </main>
+
+  <script src="app.js"></script>
+</body>
+</html>

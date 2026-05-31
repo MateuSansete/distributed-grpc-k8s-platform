@@ -1,0 +1,20 @@
+# Build multi-stage do gateway. O context deve ser a RAIZ do repo,
+# pois o build do Gradle gera código a partir de ../proto.
+#   docker build -f p/Dockerfile -t gateway .
+# (o docker-compose já faz isso com context: .)
+
+# --- build ---
+FROM eclipse-temurin:21-jdk AS build
+WORKDIR /workspace
+COPY proto ./proto
+COPY p ./p
+WORKDIR /workspace/p
+RUN chmod +x gradlew && ./gradlew --no-daemon clean bootJar -x test
+
+# --- runtime ---
+FROM eclipse-temurin:21-jre
+WORKDIR /app
+# Copia só o boot jar (o *-plain.jar não casa com *-SNAPSHOT.jar).
+COPY --from=build /workspace/p/build/libs/*-SNAPSHOT.jar app.jar
+EXPOSE 8080
+ENTRYPOINT ["java", "-jar", "app.jar"]

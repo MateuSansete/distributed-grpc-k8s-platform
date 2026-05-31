@@ -1,0 +1,29 @@
+==============================================================
+ EVIDÊNCIA — Demo gRPC bidirecional (ChatService.Chat)
+ Item B.1 do enunciado PSPD. Capturado em execução real.
+ Servidor: demo/chat_server.py (:50061) | Cliente: demo/chat_client.py
+==============================================================
+
+----- TERMINAL DO CLIENTE -----
+[Cliente] -> enviando: Oi servidor, tudo bem?
+[Cliente] <- recebido de 'servidor': ACK recebi: 'Oi servidor, tudo bem?'
+[Cliente] <- recebido de 'bot': Olá gabriel, sua mensagem tinha 22 caracteres.
+[Cliente] -> enviando: Esse e o demo bidirecional do gRPC.
+[Cliente] <- recebido de 'servidor': ACK recebi: 'Esse e o demo bidirecional do gRPC.'
+[Cliente] <- recebido de 'bot': Olá gabriel, sua mensagem tinha 35 caracteres.
+[Cliente] -> enviando: Mensagens trafegam nos dois sentidos ao mesmo tempo.
+[Cliente] <- recebido de 'servidor': ACK recebi: 'Mensagens trafegam nos dois sentidos ao mesmo tempo.'
+[Cliente] <- recebido de 'bot': Olá gabriel, sua mensagem tinha 52 caracteres.
+[Cliente] -> enviando: Tchau!
+[Cliente] <- recebido de 'servidor': ACK recebi: 'Tchau!'
+[Cliente] <- recebido de 'bot': Olá gabriel, sua mensagem tinha 6 caracteres.
+[Cliente] Stream encerrado.
+
+----- TERMINAL DO SERVIDOR -----
+[Servidor] ChatService (bidi) rodando na porta 50061...
+[Servidor] Stream bidirecional aberto.
+[Servidor] Recebido de 'gabriel': Oi servidor, tudo bem?
+[Servidor] Recebido de 'gabriel': Esse e o demo bidirecional do gRPC.
+[Servidor] Recebido de 'gabriel': Mensagens trafegam nos dois sentidos ao mesmo tempo.
+[Servidor] Recebido de 'gabriel': Tchau!
+[Servidor] Cliente encerrou o stream de entrada.

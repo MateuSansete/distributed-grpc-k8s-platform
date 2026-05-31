@@ -6,22 +6,23 @@ spring:
     name: gateway
 
 # Configuração dos clients gRPC (net.devh).
-# Os módulos A (voos) e B (hotéis) ainda não existem — channels são criados
-# de forma lazy, então a aplicação sobe normalmente mesmo com A/B offline.
+# Portas reais dos servidores Python: A (voos) = 50051, B (hotéis) = 50052.
+# Channels são criados de forma lazy, então o gateway sobe mesmo com A/B offline.
 grpc:
   client:
     flight-service:
-      address: 'static://localhost:5001'
+      # Sobrescrevível por env (FLIGHT_SERVICE_ADDRESS) para containerização/K8s.
+      address: ${FLIGHT_SERVICE_ADDRESS:static://localhost:50051}
       negotiation-type: plaintext
     hotel-service:
-      address: 'static://localhost:5002'
+      address: ${HOTEL_SERVICE_ADDRESS:static://localhost:50052}
       negotiation-type: plaintext
 
 management:
   endpoints:
     web:
       exposure:
-        include: health,info
+        include: health,info,metrics
   endpoint:
     health:
       show-details: always
