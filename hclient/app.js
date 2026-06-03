@@ -1,7 +1,9 @@
 // Frontend (HClient) do projeto PSPD.
 // Consome o gateway gRPC->REST em http://localhost:8080/api/packages/search.
 
-const GATEWAY = "http://localhost:8080";
+// URL vazia = relativa ao host atual. Em K8s, o nginx faz proxy de /api/ para o gateway.
+// Para rodar localmente sem K8s, substitua por "http://localhost:8080".
+const GATEWAY = "";
 
 // Aeroportos (códigos IATA usados pelos mocks de A e B) + rótulo amigável.
 const AIRPORTS = [

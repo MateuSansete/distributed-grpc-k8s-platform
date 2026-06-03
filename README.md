@@ -18,7 +18,7 @@ A aplicação consiste em um agregador de viagens que combina dados de voos e ho
 * **Linguagens:** *[Insira aqui as linguagens que escolheram, ex: Python, Go, Node.js]*
 
 ## 👥 Equipe e Responsabilidades
-* **Arthur:** Infraestrutura e Kubernetes (HServ)
+* **Artur:** Infraestrutura e Kubernetes (HServ)
 * **Mateus:** Microsserviços gRPC (Módulos A e B)
 * **Gabriel:** API Gateway e Combinação (Módulo P)
 * **Gabriel e Carlos:** Frontend (HClient) e Fundamentos gRPC

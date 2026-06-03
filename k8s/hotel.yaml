@@ -1,0 +1,38 @@
+# Serviço B — HotelService (gRPC Python, porta 50052)
+#
+# Mesma estrutura do flight.yaml; só muda o nome e a porta.
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: hotel-service
+  labels:
+    app: hotel-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: hotel-service
+  template:
+    metadata:
+      labels:
+        app: hotel-service
+    spec:
+      containers:
+        - name: hotel-service
+          image: hotel-service:latest
+          imagePullPolicy: Never
+          ports:
+            - containerPort: 50052
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: hotel-service
+spec:
+  type: ClusterIP
+  selector:
+    app: hotel-service
+  ports:
+    - port: 50052
+      targetPort: 50052

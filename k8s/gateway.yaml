@@ -1,0 +1,50 @@
+# Módulo P — Gateway Java Spring Boot (porta 8080)
+#
+# Este é o único serviço que precisa falar com A e B via gRPC.
+# As variáveis de ambiente FLIGHT_SERVICE_ADDRESS e HOTEL_SERVICE_ADDRESS
+# usam os nomes DNS internos criados pelos Services de A e B.
+#
+# O Service aqui é ClusterIP porque o acesso externo entra pelo frontend
+# (nginx faz proxy de /api/ para este serviço internamente).
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: gateway
+  labels:
+    app: gateway
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: gateway
+  template:
+    metadata:
+      labels:
+        app: gateway
+    spec:
+      containers:
+        - name: gateway
+          image: gateway:latest
+          imagePullPolicy: Never
+          ports:
+            - containerPort: 8080
+          env:
+            # Kubernetes resolve "flight-service" e "hotel-service" automaticamente
+            # pelos nomes dos Services criados nos outros YAMLs.
+            - name: FLIGHT_SERVICE_ADDRESS
+              value: "static://flight-service:50051"
+            - name: HOTEL_SERVICE_ADDRESS
+              value: "static://hotel-service:50052"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: gateway-service
+spec:
+  type: ClusterIP
+  selector:
+    app: gateway
+  ports:
+    - port: 8080
+      targetPort: 8080

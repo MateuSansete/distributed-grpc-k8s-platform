@@ -1,0 +1,88 @@
+# Frontend — HClient (nginx, porta 80)
+#
+# PROBLEMA A RESOLVER:
+#   O browser não consegue alcançar "gateway-service:8080" diretamente —
+#   esse nome só existe dentro do cluster. A solução é configurar o nginx
+#   do frontend para funcionar como um proxy reverso: o browser chama
+#   "/api/..." no mesmo host do frontend, e o nginx repassa essa chamada
+#   para "gateway-service:8080" internamente.
+#
+# COMPONENTES:
+#   1. ConfigMap: arquivo de configuração do nginx com a regra de proxy.
+#   2. Deployment: monta o ConfigMap como arquivo dentro do container.
+#   3. Service: NodePort expõe o frontend para fora do cluster (porta 30500).
+
+---
+# 1. ConfigMap com a configuração do nginx
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: nginx-frontend-config
+data:
+  default.conf: |
+    server {
+        listen 80;
+        root /usr/share/nginx/html;
+        index index.html;
+
+        # Toda requisição para /api/ é repassada internamente ao gateway.
+        # O DNS "gateway-service" é resolvido automaticamente pelo Kubernetes.
+        location /api/ {
+            proxy_pass http://gateway-service:8080;
+            proxy_set_header Host $http_host;
+            proxy_set_header X-Real-IP $remote_addr;
+        }
+
+        # Arquivos estáticos do frontend
+        location / {
+            try_files $uri $uri/ /index.html;
+        }
+    }
+
+---
+# 2. Deployment do frontend
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: frontend
+  labels:
+    app: frontend
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: frontend
+  template:
+    metadata:
+      labels:
+        app: frontend
+    spec:
+      containers:
+        - name: frontend
+          image: frontend:latest
+          imagePullPolicy: Never
+          ports:
+            - containerPort: 80
+          volumeMounts:
+            # Substitui o arquivo de config padrão do nginx pelo nosso ConfigMap
+            - name: nginx-config-volume
+              mountPath: /etc/nginx/conf.d
+      volumes:
+        - name: nginx-config-volume
+          configMap:
+            name: nginx-frontend-config
+
+---
+# 3. Service com NodePort — o único ponto de entrada externo da aplicação
+apiVersion: v1
+kind: Service
+metadata:
+  name: frontend-service
+spec:
+  type: NodePort
+  selector:
+    app: frontend
+  ports:
+    - port: 80
+      targetPort: 80
+      nodePort: 30500   # porta fixa no Minikube; acesso via http://$(minikube ip):30500
