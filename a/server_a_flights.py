@@ -1,48 +1,40 @@
 import grpc
 from concurrent import futures
 import time
-from datetime import datetime, timedelta, timezone
-from google.protobuf.timestamp_pb2 import Timestamp
+import json
+import os
+from google.protobuf.json_format import ParseDict
 import travel_pb2
 import travel_pb2_grpc
-import random
 
-# Base de dados estática em memória: 500 voos
-def generate_mock_flights():
-    flights = []
-    airlines = ["Latam", "Gol", "Azul", "Avianca", "Emirates"]
-    airports = ["BSB", "GIG", "GRU", "SDU", "CNF", "REC", "SSA"]
-    
-    now = datetime.now(timezone.utc)
-    
-    for i in range(1, 501):
-        # Gera voos para os próximos 30 dias
-        days_ahead = random.randint(0, 30)
-        dep_dt = now + timedelta(days=days_ahead, hours=random.randint(1, 23))
-        arr_dt = dep_dt + timedelta(hours=random.randint(1, 5))
-        
-        dep_time = Timestamp()
-        dep_time.FromDatetime(dep_dt)
-        arr_time = Timestamp()
-        arr_time.FromDatetime(arr_dt)
-        
-        flight = travel_pb2.Flight(
-            flight_id=f"FL-{i:04d}",
-            airline=random.choice(airlines),
-            origin=random.choice(airports),
-            destination=random.choice(airports),
-            departure_time=dep_time,
-            arrival_time=arr_time,
-            duration_minutes=int((arr_dt - dep_dt).total_seconds() / 60),
-            price=travel_pb2.Money(currency="BRL", amount_cents=random.randint(20000, 150000)),
-            available_seats=random.randint(5, 150)
-        )
-        while flight.origin == flight.destination:
-            flight.destination = random.choice(airports)
-        flights.append(flight)
-    return flights
+FLIGHTS_DB = []
 
-FLIGHTS_DB = generate_mock_flights()
+JSON_FILE_PATH = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'data', 'flights_db.json'))
+
+# Leitura do arquivo e conversão para objetos Protobuf
+try:
+    with open(JSON_FILE_PATH, 'r', encoding='utf-8') as f:
+        flights_data = json.load(f)
+        
+        for flight_dict in flights_data:
+            # Cria a instância vazia da mensagem Protobuf
+            flight_pb = travel_pb2.Flight()
+            
+            # Mapeamento automático das chaves do dicionário para o objeto gRPC
+            ParseDict(flight_dict, flight_pb)
+            
+            # Adiciona à lista global
+            FLIGHTS_DB.append(flight_pb)
+            
+    print(f"[Init] Sucesso: Carregados {len(FLIGHTS_DB)} voos da base estática.")
+except FileNotFoundError:
+    print(f"[Erro] Arquivo não encontrado: {JSON_FILE_PATH}")
+    print("Certifique-se de rodar o gerador de dados antes de iniciar o servidor.")
+    exit(1)
+except Exception as e:
+    print(f"[Erro] Falha ao carregar a base de voos: {e}")
+    exit(1)
+
 
 class FlightServiceServicer(travel_pb2_grpc.FlightServiceServicer):
     

@@ -228,3 +228,7 @@ __marimo__/
 *.iml
 .idea/
 out/
+
+# Ignora os arquivos de mock gerados pelo script na inicialização
+data/flights_db.json
+data/hotels_db.json
