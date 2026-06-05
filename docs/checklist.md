@@ -26,11 +26,11 @@ Trabalhos que podem rodar simultaneamente nas próximas 2-3 jornadas de trabalho
 - [x] Salvar `.proto` do demo + códigos em `proto/demo.proto` e pasta `demo/`  👤 Gabriel  ⏱ 15min
 
 ### 1.3 Versão REST/JSON espelho
-- [ ] Definir tecnologia (Express ou FastAPI ou Spring REST puro — qualquer)  👤 Arthur + Guilherme  ⏱ 30min decisão
-- [ ] Implementar `flight-service-rest/` (mesmas rotas, mesmo mock que A)  👤 Guilherme  ⏱ 3h
-- [ ] Implementar `hotel-service-rest/` (mesmas rotas, mesmo mock que B)  👤 Guilherme  ⏱ 3h
-- [ ] Implementar `gateway-rest/` (cliente HTTP chamando os dois acima, mesma combinação, mesma ordenação)  👤 Arthur  ⏱ 4h
-- [ ] Validar end-to-end localmente: `curl http://localhost:9080/api/packages/search?...` retorna mesmos campos da versão gRPC  👤 Arthur + Guilherme  ⏱ 1h
+- [x] Definir tecnologia (Express ou FastAPI ou Spring REST puro — qualquer)  👤 Arthur + Guilherme  ⏱ 30min decisão
+- [x] Implementar `flight-service-rest/` (mesmas rotas, mesmo mock que A)  👤 Guilherme  ⏱ 3h
+- [x] Implementar `hotel-service-rest/` (mesmas rotas, mesmo mock que B)  👤 Guilherme  ⏱ 3h
+- [x] Implementar `gateway-rest/` (cliente HTTP chamando os dois acima, mesma combinação, mesma ordenação)  👤 Arthur  ⏱ 4h
+- [x] Validar end-to-end localmente: `curl http://localhost:9080/api/packages/search?...` retorna mesmos campos da versão gRPC  👤 Arthur + Guilherme  ⏱ 1h
 
 ### 1.4 Hand-off do gateway P para infraestrutura — ✅ docs prontas
 - [x] Escrever `p/README.md`: como rodar, portas, variáveis de ambiente (`FLIGHT_SERVICE_ADDRESS`/`HOTEL_SERVICE_ADDRESS`)  👤 Gabriel  ⏱ 30min
@@ -47,9 +47,9 @@ Como rodar: `../docs/como-rodar.md` (Opção A).
 - [x] `p/Dockerfile` multi-stage (Gradle bootJar → JRE 21; context = raiz por causa de `../proto`)  👤 Arthur  ⏱ 1h
 - [x] `a/Dockerfile` (Python 3.11-slim, gera stubs no build)  👤 Arthur (com Mateus)  ⏱ 30min
 - [x] `b/Dockerfile`  👤 Arthur (com Mateus)  ⏱ 30min
-- [ ] `flight-service-rest/Dockerfile`  ⛔ depende da Fase 1.3 (REST espelho, não implementada)  👤 Arthur (com Guilherme)  ⏱ 30min
-- [ ] `hotel-service-rest/Dockerfile`  ⛔ depende da Fase 1.3  👤 Arthur (com Guilherme)  ⏱ 30min
-- [ ] `gateway-rest/Dockerfile`  ⛔ depende da Fase 1.3  👤 Arthur  ⏱ 30min
+- [x] `flight-service-rest/Dockerfile`  ⛔ depende da Fase 1.3 (REST espelho, não implementada)  👤 Arthur (com Guilherme)  ⏱ 30min
+- [x] `hotel-service-rest/Dockerfile`  ⛔ depende da Fase 1.3  👤 Arthur (com Guilherme)  ⏱ 30min
+- [x] `gateway-rest/Dockerfile`  ⛔ depende da Fase 1.3  👤 Arthur  ⏱ 30min
 - [x] `.dockerignore` em cada módulo (raiz, `a/`, `b/`, `hclient/`)  👤 Arthur  ⏱ 15min
 - [x] `docker-compose.yml` para subir tudo localmente (gateway + A + B + frontend)  👤 Arthur  ⏱ 1h
 - [x] Testar build local de todas as imagens (4 imagens construídas)  👤 Arthur  ⏱ 30min
@@ -210,8 +210,8 @@ Dependência: Fase 4 concluída (precisa dos prints e da tabela de performance).
 2. ✅ Módulos A e B funcionando
 3. ✅ Gateway integrado com A e B
 4. ✅ **Frontend funcionando + demo isolado do bidi**
-5. ⏳ **Versão REST espelho funcionando** ← próximo bloqueio (bloqueia o teste de performance) — Arthur + Guilherme
-6. 🟡 **Imagens Docker construídas** — lado gRPC ✅ (`docker compose up`); falta o lado REST (Fase 1.3)
+5. ✅ **Versão REST espelho funcionando** ← próximo bloqueio (bloqueia o teste de performance) — Arthur + Guilherme
+6. ✅ **Imagens Docker construídas** — lado gRPC ✅ (`docker compose up`); falta o lado REST (Fase 1.3)
 7. ⏳ **Tudo rodando no Minikube end-to-end**
 8. ⏳ **Tabela de performance gRPC × REST pronta**
 9. ⏳ **Relatório consolidado revisado**
