@@ -115,20 +115,20 @@ Para homologar as funções de streaming sem alterar o `docker-compose.yml`, uti
 Instale as dependências (caso rode fora do container, exige mapeamento de porta):
 
 ```bash
-cd laboratorio
+cd grpc_tests
 npm install
 ```
 
 Para testar o **Server-Streaming** (o cliente solicita 1 vez; o servidor devolve um fluxo contínuo de voos):
 
 ```bash
-node teste_server_streaming.js
+node test_server_streaming.js
 ```
 
 Para testar o **Client-Streaming** (o cliente envia várias cidades em fluxo; o servidor devolve o total consolidado numa única resposta no final):
 
 ```bash
-node teste_client_streaming.js
+node test_client_streaming.js
 ```
 
 > **Nota:** Caso queira rodar os scripts sem alterar o `docker-compose.yml` localmente, execute o node encapsulado: `docker compose exec frontend sh -c "node /caminho/do/script.js"` (caso a imagem comporte Node.js).
