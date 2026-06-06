@@ -1,7 +1,26 @@
 import json
 import os
+import argparse
+import sys
 import random
 from datetime import datetime, timedelta, timezone
+
+def get_dataset_size():
+    parser = argparse.ArgumentParser(description="Gerador de massa de dados.")
+    parser.add_argument(
+        '--size', 
+        type=int, 
+        default=1000, 
+        help="Quantidade de registros a gerar (min: 500, max: 20000)"
+    )
+    
+    args = parser.parse_args()
+    
+    if not (500 <= args.size <= 20000):
+        print(f"Erro: O tamanho {args.size} está fora dos limites permitidos (500 a 20000).", file=sys.stderr)
+        sys.exit(1)
+        
+    return args.size
 
 def generate_static_database():
     # 1. Define e garante a existência do diretório compartilhado 'data'
@@ -22,7 +41,7 @@ def generate_static_database():
     # 1. GERAÇÃO DO CATÁLOGO DE VOOS (Módulo A)
     # =========================================================================
     flights = []
-    for i in range(1, 501):
+    for i in range(1, tamanho_base + 1):
         days_ahead = random.randint(0, 30)
         dep_dt = now + timedelta(days=days_ahead, hours=random.randint(1, 23))
         arr_dt = dep_dt + timedelta(hours=random.randint(1, 5))
@@ -53,7 +72,7 @@ def generate_static_database():
     # 2. GERAÇÃO DO CATÁLOGO DE HOTÉIS (Módulo B)
     # =========================================================================
     hotels = []
-    for i in range(1, 501):
+    for i in range(1, tamanho_base + 1):
         hotel = {
             "hotel_id": f"HTL-{i:04d}",
             "name": f"Hotel {random.choice(adjectives)} {i}",
@@ -85,4 +104,6 @@ def generate_static_database():
     print(f"[Gerador] Exportados {len(hotels)} hotéis para: {hotels_path}")
 
 if __name__ == '__main__':
+    tamanho_base = get_dataset_size()
+    print(f"Iniciando geração de {tamanho_base} registros...")
     generate_static_database()
