@@ -18,16 +18,38 @@ docker compose up --build
 Quando subir:
 
 - Frontend: **http://localhost:5500**
-- API do gateway: **http://localhost:8080**
+- API do gateway (Stack gRPC): **http://localhost:8080**
+- API do gateway (Stack REST): **http://localhost:9080**
 
 ## Componentes
 
 | Serviço | Porta | Publicada no host? |
 |---|---|---|
 | Frontend (HClient / nginx) | 5500 | sim |
-| Gateway P (REST) | 8080 | sim |
+| Gateway P (gRPC) | 8080 | sim |
 | FlightService A (gRPC) | 50051 | não (interno) |
 | HotelService B (gRPC) | 50052 | não (interno) |
+| Gateway P (REST) | 9080 | sim |
+| FlightService A (REST) | 5001 | não (interno) |
+| HotelService B (REST) | 5002 | não (interno) |
+
+
+## Gerenciamento da Base de Dados
+
+Os serviços consomem uma base estática em JSON (`data/flights_db.json` e `data/hotels_db.json`) para garantir resultados consistentes nos testes de performance. A base de dados é gerada automaticamente apenas no primeiro `docker compose up`. A partir da segunda execução, o sistema passa a reaproveitar os dados já existentes.
+
+Para forçar a geração de uma nova base de dados (sobrescrevendo a atual):
+
+1. Execute o script gerador diretamente dentro do contêiner isolado:
+    ```bash
+    docker compose run --rm data-generator python /scripts/generate_data.py
+    ```
+
+2. Reinicie as APIs para que elas carreguem os novos arquivos para a memória:
+    ```bash
+    docker compose restart flight flight-rest hotel hotel-rest   
+    ```
+
 
 ## Comandos úteis
 

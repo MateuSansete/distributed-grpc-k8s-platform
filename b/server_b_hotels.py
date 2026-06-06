@@ -1,29 +1,40 @@
 import grpc
 from concurrent import futures
 import time
+import json
+import os
+from google.protobuf.json_format import ParseDict
 import travel_pb2
 import travel_pb2_grpc
-import random
 
-# Base de dados estática em memória: 500 hotéis
-def generate_mock_hotels():
-    hotels = []
-    cities = ["BSB", "GIG", "GRU", "SDU", "CNF", "REC", "SSA"]
-    adjectives = ["Palace", "Resort", "Plaza", "Inn", "Suites"]
-    
-    for i in range(1, 501):
-        hotels.append(travel_pb2.Hotel(
-            hotel_id=f"HTL-{i:04d}",
-            name=f"Hotel {random.choice(adjectives)} {i}",
-            city=random.choice(cities),
-            stars=random.randint(1, 5),
-            price_per_night=travel_pb2.Money(currency="BRL", amount_cents=random.randint(10000, 80000)),
-            available_rooms=random.randint(1, 50),
-            amenities=["wifi", "breakfast"] if random.choice([True, False]) else ["wifi"]
-        ))
-    return hotels
+HOTELS_DB = []
 
-HOTELS_DB = generate_mock_hotels()
+JSON_FILE_PATH = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'data', 'hotels_db.json'))
+
+# Leitura do arquivo e conversão para objetos Protobuf
+try:
+    with open(JSON_FILE_PATH, 'r', encoding='utf-8') as f:
+        hotels_data = json.load(f)
+        
+        for hotel_dict in hotels_data:
+            # Cria a instância vazia da mensagem Protobuf
+            hotel_pb = travel_pb2.Hotel()
+            
+            # Mapeamento automático das chaves do dicionário para o objeto gRPC
+            ParseDict(hotel_dict, hotel_pb)
+            
+            # Adiciona à lista global
+            HOTELS_DB.append(hotel_pb)
+            
+    print(f"[Init] Sucesso: Carregados {len(HOTELS_DB)} hotéis da base estática.")
+except FileNotFoundError:
+    print(f"[Erro] Arquivo não encontrado: {JSON_FILE_PATH}")
+    print("Certifique-se de rodar o gerador de dados antes de iniciar o servidor.")
+    exit(1)
+except Exception as e:
+    print(f"[Erro] Falha ao carregar a base de hotéis: {e}")
+    exit(1)
+
 
 class HotelServiceServicer(travel_pb2_grpc.HotelServiceServicer):
     

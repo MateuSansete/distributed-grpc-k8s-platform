@@ -1,0 +1,23 @@
+server:
+  port: 9080
+
+spring:
+  application:
+    name: gateway-rest
+
+# URLs base dos serviços Python FastAPI
+rest:
+  client:
+    flight-service:
+      url: ${FLIGHT_SERVICE_REST_URL:http://localhost:5001/api/flights}
+    hotel-service:
+      url: ${HOTEL_SERVICE_REST_URL:http://localhost:5002/api/hotels}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+  endpoint:
+    health:
+      show-details: always
