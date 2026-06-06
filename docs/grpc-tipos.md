@@ -1,9 +1,8 @@
 # Os 4 tipos de comunicação gRPC no projeto
 
-O enunciado (item B.1) pede a demonstração dos **quatro** padrões de RPC do gRPC. Os três
-primeiros já existem na **aplicação principal** (serviços A e B); o bidirecional é o
-**demo isolado** em [`../demo/`](../demo/). Contratos em
-[`../proto/travel.proto`](../proto/travel.proto) e [`../proto/demo.proto`](../proto/demo.proto).
+O enunciado (item B.1) pede a demonstração dos **quatro** padrões de RPC do gRPC e uma conclusão de uso para cada situação.
+
+Os três primeiros já existem na **aplicação principal** (serviços A e B), sendo que o Server e Client streaming são provados através de scripts isolados na pasta `grpc_tests/`. O bidirecional é o **demo isolado** em `demo/`. Contratos originais localizados em `proto/travel.proto` e `proto/demo.proto`.
 
 | Tipo | RPC | Onde | Stream |
 |---|---|---|---|
@@ -16,7 +15,7 @@ primeiros já existem na **aplicação principal** (serviços A e B); o bidireci
 
 ## 1. Unário — `SearchFlights`
 
-Um request, uma response. É o que o gateway usa na busca de pacotes.
+Um request, uma response. É o fluxo principal que o Gateway Java utiliza na busca de pacotes.
 
 ```proto
 rpc SearchFlights (FlightSearchRequest) returns (FlightSearchResponse);
@@ -29,12 +28,15 @@ def SearchFlights(self, request, context):
     return travel_pb2.FlightSearchResponse(flights=matched, total_found=len(matched))
 ```
 
-**Evidência:** qualquer busca no frontend/`curl` ao gateway dispara este RPC
-(ver log do gateway: `flight.search.time=...ms ... found=N`).
+**Evidência:** Qualquer busca na interface Frontend React dispara este RPC. O log do Gateway exibe o tempo de resposta e os itens encontrados (ex: `flight.search.time=29ms origin=BSB destination=GRU found=120`).
+
+**Conclusão e Uso:** Deve ser utilizado na maioria das comunicações de um sistema, especificamente em operações transacionais e CRUDs tradicionais, onde o payload é previsível e o cliente exige a resposta imediatamente.
+
+---
 
 ## 2. Server-streaming — `StreamFlights`
 
-Um request; o servidor devolve vários `Flight` em fluxo (`yield`), um de cada vez.
+Um request; o servidor devolve vários objetos `Flight` em fluxo (`yield`), um de cada vez, evitando gargalos de memória no backend.
 
 ```proto
 rpc StreamFlights (FlightSearchRequest) returns (stream Flight);
@@ -48,9 +50,15 @@ def StreamFlights(self, request, context):
         yield flight
 ```
 
+**Evidência:** Execução do script laboratorial `node grpc_tests/test_server_streaming.js`. O terminal exibe a chegada dos voos faseadamente, provando que o servidor consegue transmitir dados em "chunks" contínuos.
+
+**Conclusão e Uso:** Ideal para consultas massivas que consumiriam muita memória RAM se montadas num array único. Casos de uso incluem: extração de grandes relatórios de banco de dados e feeds de atualização em tempo real (ex: home broker de ações).
+
+---
+
 ## 3. Client-streaming — `BulkSearchHotels`
 
-O cliente envia vários requests em fluxo; o servidor responde **uma vez** com o agregado.
+O cliente abre a conexão e envia vários requests em fluxo (ex: múltiplas cidades); o servidor aguarda o encerramento e responde uma única vez com os dados agregados.
 
 ```proto
 rpc BulkSearchHotels (stream HotelSearchRequest) returns (HotelSearchResponse);
@@ -65,23 +73,20 @@ def BulkSearchHotels(self, request_iterator, context):
     return travel_pb2.HotelSearchResponse(hotels=all_matched, total_found=len(all_matched))
 ```
 
+**Evidência:** Execução do script laboratorial `node grpc_tests/test_client_streaming.js`. O terminal mostra o envio compassado de requisições e a resposta sumariada do servidor ocorrendo apenas após o `call.end()` do cliente.
+
+**Conclusão e Uso:** Excelente para cenários de alta volumetria de ingestão de dados. Casos práticos incluem: upload de arquivos pesados em pedaços, envio massivo de logs de telemetria de dispositivos IoT e processamento de dados em lote (batch processing).
+
+---
+
 ## 4. Bidirecional — `ChatService.Chat`
 
-Os dois lados mantêm streams abertos simultaneamente (full-duplex sobre HTTP/2).
+Ambos os lados mantêm streams abertos e independentes simultaneamente (full-duplex) multiplexados sobre HTTP/2.
 
 ```proto
 rpc Chat (stream ChatMessage) returns (stream ChatMessage);
 ```
 
-Implementação e instruções em [`../demo/README.md`](../demo/README.md).
-**Evidência real capturada:** [`evidencias/chat-demo.txt`](evidencias/chat-demo.txt) — mostra
-mensagens do cliente e do servidor intercaladas no mesmo stream.
+**Evidência:** Implementação e instruções em `demo/README.md`. A evidência real está capturada em `docs/evidencias/chat-demo.txt`, demonstrando que o cliente envia mensagens iterativas e o servidor responde instantaneamente sem aguardar o fim do envio do cliente.
 
----
-
-### Por que isso importa para o relatório
-
-O gRPC modela os quatro padrões nativamente porque roda sobre **HTTP/2** (streams
-multiplexados) + **Protobuf** (serialização binária). Em REST/HTTP1.1 o equivalente a
-streaming exige gambiarras (long-polling, SSE, websockets). Esse é um dos argumentos do
-comparativo gRPC × REST (Fase 4).
+**Conclusão e Uso:** É a evolução definitiva sobre WebSockets. Utilizado obrigatoriamente em sistemas onde a comunicação assíncrona nos dois sentidos é vital: jogos multiplayer online, sistemas de chat real-time, videoconferências e plataformas de edição colaborativa simultânea (ex: Google Docs).
