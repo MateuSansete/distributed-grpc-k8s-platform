@@ -36,14 +36,16 @@ Quando subir:
 
 ## Gerenciamento da Base de Dados
 
-Os serviços consomem uma base estática em JSON (`data/flights_db.json` e `data/hotels_db.json`) para garantir resultados consistentes nos testes de performance. A base de dados é gerada automaticamente apenas no primeiro `docker compose up`. A partir da segunda execução, o sistema passa a reaproveitar os dados já existentes.
+Os serviços consomem uma base estática em JSON (`data/flights_db.json` e `data/hotels_db.json`) para garantir resultados consistentes nos testes de performance. A base de dados é gerada automaticamente apenas no primeiro `docker compose up` (com o tamanho padrão de 1.000 registros). A partir da segunda execução, o sistema passa a reaproveitar os dados já existentes.
 
-Para forçar a geração de uma nova base de dados (sobrescrevendo a atual):
+Para forçar a geração de uma nova base de dados (sobrescrevendo a atual) você pode definir a quantidade de registros informando o parâmetro `--size` (min: 500, max: 20000):
 
 1. Execute o script gerador diretamente dentro do contêiner isolado:
     ```bash
-    docker compose run --rm data-generator python /scripts/generate_data.py
+    docker compose run --rm data-generator python /scripts/generate_data.py --size 5000
     ```
+    *(Nota: Se o parâmetro `--size` for omitido, o tamanho padrão de 1.000 será gerado).*
+
 
 2. Reinicie as APIs para que elas carreguem os novos arquivos para a memória:
     ```bash
