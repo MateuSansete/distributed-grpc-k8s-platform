@@ -89,6 +89,7 @@ services:
       environment:
         FLIGHT_SERVICE_REST_URL: http://flight-rest:5001/api/flights
         HOTEL_SERVICE_REST_URL: http://hotel-rest:5002/api/hotels
+        SPRING_CODEC_MAX_IN_MEMORY_SIZE: 10MB
       depends_on:
         - flight-rest
         - hotel-rest

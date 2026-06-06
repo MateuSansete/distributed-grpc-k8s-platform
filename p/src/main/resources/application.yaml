@@ -4,6 +4,9 @@ server:
 spring:
   application:
     name: gateway
+  threads:
+    virtual:
+      enabled: true
 
 # Configuração dos clients gRPC (net.devh).
 # Portas reais dos servidores Python: A (voos) = 50051, B (hotéis) = 50052.
