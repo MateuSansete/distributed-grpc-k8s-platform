@@ -106,32 +106,71 @@ O edital exige a validação técnica dos 4 fluxos gRPC suportados. Abaixo os pa
 
 A resposta imediata consolidada na tabela é a prova da comunicação Unária operando na lógica principal (Gateway).
 
+---
+
 ### 2. Fluxos Intermediários: Server & Client Streaming
 
 Embora implementados nos microsserviços em Python, o Gateway Java utiliza apenas fluxo unário. Para proteger os microsserviços do acesso externo do host, as suas portas (`50051` e `50052`) não estão publicadas fora da rede interna do Docker Compose.
 
-Para homologar as funções de streaming sem alterar o `docker-compose.yml`, utilizamos testes laboratoriais em Node.js rodando por dentro da rede interna utilizando o terminal do contêiner Frontend ou do próprio repositório.
+Para homologar as funções de streaming **sem alterar o `docker-compose.yml`**, os scripts Node.js são executados dentro de um contêiner temporário que compartilha a rede interna do Docker com o serviço alvo — técnica chamada de **Network Namespace Sharing** (flag `--network container:<nome>`). Isso faz com que o `localhost` do contêiner de teste seja o mesmo `localhost` do serviço Python, eliminando qualquer barreira de porta.
 
-Instale as dependências (caso rode fora do container, exige mapeamento de porta):
+> **Pré-requisito:** certifique-se de que a stack está no ar (`docker compose up -d`) e que os comandos abaixo são executados **a partir da raiz do projeto**, antes de prosseguir.
 
+#### Teste de Server-Streaming (Voos)
+*1 pedido → várias respostas em fluxo contínuo*
+
+**Linux / macOS:**
 ```bash
-cd grpc_tests
-npm install
+docker run --rm -it --network container:flight-service \
+  -v "$(pwd):/app" -w /app/grpc_tests node:18-alpine \
+  sh -c "npm i --silent @grpc/grpc-js @grpc/proto-loader && node test_server_streaming.js"
 ```
 
-Para testar o **Server-Streaming** (o cliente solicita 1 vez; o servidor devolve um fluxo contínuo de voos):
-
+**Windows — Git Bash:**
 ```bash
-node test_server_streaming.js
+MSYS_NO_PATHCONV=1 docker run --rm -it --network container:flight-service \
+  -v "/$(pwd):/app" -w /app/grpc_tests node:18-alpine \
+  sh -c "npm i --silent @grpc/grpc-js @grpc/proto-loader && node test_server_streaming.js"
 ```
 
-Para testar o **Client-Streaming** (o cliente envia várias cidades em fluxo; o servidor devolve o total consolidado numa única resposta no final):
-
-```bash
-node test_client_streaming.js
+**Windows — PowerShell:**
+```powershell
+docker run --rm -it --network container:flight-service `
+  -v "${PWD}:/app" -w /app/grpc_tests node:18-alpine `
+  sh -c "npm i --silent @grpc/grpc-js @grpc/proto-loader && node test_server_streaming.js"
 ```
 
-> **Nota:** Caso queira rodar os scripts sem alterar o `docker-compose.yml` localmente, execute o node encapsulado: `docker compose exec frontend sh -c "node /caminho/do/script.js"` (caso a imagem comporte Node.js).
+A saída esperada mostrará mensagens sequenciais de voos sendo enviadas de forma faseada pelo servidor Python.
+
+---
+
+#### Teste de Client-Streaming (Hotéis)
+*várias requisições em fluxo → 1 resposta agregada no final*
+
+**Linux / macOS:**
+```bash
+docker run --rm -it --network container:hotel-service \
+  -v "$(pwd):/app" -w /app/grpc_tests node:18-alpine \
+  sh -c "npm i --silent @grpc/grpc-js @grpc/proto-loader && node test_client_streaming.js"
+```
+
+**Windows — Git Bash:**
+```bash
+MSYS_NO_PATHCONV=1 docker run --rm -it --network container:hotel-service \
+  -v "/$(pwd):/app" -w /app/grpc_tests node:18-alpine \
+  sh -c "npm i --silent @grpc/grpc-js @grpc/proto-loader && node test_client_streaming.js"
+```
+
+**Windows — PowerShell:**
+```powershell
+docker run --rm -it --network container:hotel-service `
+  -v "${PWD}:/app" -w /app/grpc_tests node:18-alpine `
+  sh -c "npm i --silent @grpc/grpc-js @grpc/proto-loader && node test_client_streaming.js"
+```
+
+A saída esperada mostrará as requisições de cidades sendo enviadas pausadamente e o resumo matemático (total de hotéis) entregue pelo backend no encerramento do fluxo.
+
+---
 
 ### 3. Comunicação Bidirecional (Full-Duplex)
 
@@ -161,3 +200,4 @@ python demo/chat_client.py
 | Mudei código e não refletiu | imagem em cache | `docker compose up --build` (ou `docker compose build --no-cache`) |
 | Gateway responde 503 logo após subir | A/B ainda inicializando | aguarde alguns segundos e repita (canais gRPC são lazy) |
 | Busca volta vazia | usou nome de cidade em vez do código IATA | use `BSB`, `GIG`, `GRU`, `SDU`, `CNF`, `REC`, `SSA` |
+| Erro `ECONNREFUSED` nos testes de streaming | comando `docker run` executado fora da raiz do projeto | volte para a raiz (`cd ..`) e rode novamente |
