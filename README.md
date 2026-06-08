@@ -2,6 +2,17 @@
 
 Projeto acadêmico desenvolvido para a disciplina de **Programação para Sistemas Paralelos e Distribuídos (PSPD)** da UnB/FCTE. O objetivo é construir uma aplicação de microsserviços distribuídos utilizando **gRPC** para comunicação interna e **Kubernetes (Minikube)** para orquestração.
 
+## 📚 Documentação
+
+| Documento | Descrição |
+|---|---|
+| [Como rodar (local)](docs/como-rodar.md) | Subir a aplicação localmente com Docker Compose |
+| [Rodar no Kubernetes](docs/kubernetes.md) | Deploy no Minikube (manifests, comandos, troubleshooting) |
+| [Como rodar os testes](docs/testes_performance.md) | Executar a suíte de benchmark (k6) gRPC × REST |
+| [Resultados de performance](docs/performance.md) | Tabela comparativa gRPC × REST + conclusão |
+| [Tipos de comunicação gRPC](docs/grpc-tipos.md) | Os 4 tipos (unary, server/client-streaming, bidirecional) |
+| [Guia de evidências](docs/guia-evidencias.md) | Passo a passo do que testar e quais prints capturar |
+
 ## 📋 Proposta do Projeto
 A aplicação consiste em um agregador de viagens que combina dados de voos e hotéis. O sistema segue a arquitetura de microserviços:
 
