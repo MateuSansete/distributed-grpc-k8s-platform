@@ -11,7 +11,6 @@ Projeto acadêmico desenvolvido para a disciplina de **Programação para Sistem
 | [Como rodar os testes](docs/testes_performance.md) | Executar a suíte de benchmark (k6) gRPC × REST |
 | [Resultados de performance](docs/performance.md) | Tabela comparativa gRPC × REST + conclusão |
 | [Tipos de comunicação gRPC](docs/grpc-tipos.md) | Os 4 tipos (unary, server/client-streaming, bidirecional) |
-| [Guia de evidências](docs/guia-evidencias.md) | Passo a passo do que testar e quais prints capturar |
 
 ## 📋 Proposta do Projeto
 A aplicação consiste em um agregador de viagens que combina dados de voos e hotéis. O sistema segue a arquitetura de microserviços:
