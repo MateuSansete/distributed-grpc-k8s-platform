@@ -28,7 +28,7 @@ def SearchFlights(self, request, context):
     return travel_pb2.FlightSearchResponse(flights=matched, total_found=len(matched))
 ```
 
-**Evidência:** Qualquer busca na interface Frontend React dispara este RPC. O log do Gateway exibe o tempo de resposta e os itens encontrados (ex: `flight.search.time=29ms origin=BSB destination=GRU found=120`).
+**Evidência:** Qualquer busca na interface Frontend React dispara este RPC. O log do Gateway exibe o tempo de resposta e os itens encontrados (ex: `flight.search.time=29ms origin=BSB destination=GRU found=120`). Print do resultado final em: `print-8_unary.png`.
 
 **Conclusão e Uso:** Deve ser utilizado na maioria das comunicações de um sistema, especificamente em operações transacionais e CRUDs tradicionais, onde o payload é previsível e o cliente exige a resposta imediatamente.
 
@@ -50,7 +50,7 @@ def StreamFlights(self, request, context):
         yield flight
 ```
 
-**Evidência:** Execução do script laboratorial `node grpc_tests/test_server_streaming.js`. O terminal exibe a chegada dos voos faseadamente, provando que o servidor consegue transmitir dados em "chunks" contínuos.
+**Evidência:** Execução do script laboratorial `node grpc_tests/test_server_streaming.js`. O terminal exibe a chegada dos voos faseadamente, provando que o servidor consegue transmitir dados em "chunks" contínuos.  Print do resultado final em: `print-9_server-streaming.png`.
 
 **Conclusão e Uso:** Ideal para consultas massivas que consumiriam muita memória RAM se montadas num array único. Casos de uso incluem: extração de grandes relatórios de banco de dados e feeds de atualização em tempo real (ex: home broker de ações).
 
@@ -73,7 +73,7 @@ def BulkSearchHotels(self, request_iterator, context):
     return travel_pb2.HotelSearchResponse(hotels=all_matched, total_found=len(all_matched))
 ```
 
-**Evidência:** Execução do script laboratorial `node grpc_tests/test_client_streaming.js`. O terminal mostra o envio compassado de requisições e a resposta sumariada do servidor ocorrendo apenas após o `call.end()` do cliente.
+**Evidência:** Execução do script laboratorial `node grpc_tests/test_client_streaming.js`. O terminal mostra o envio compassado de requisições e a resposta sumariada do servidor ocorrendo apenas após o `call.end()` do cliente. Print do resultado final em: `print-10_client-streaming.png`.
 
 **Conclusão e Uso:** Excelente para cenários de alta volumetria de ingestão de dados. Casos práticos incluem: upload de arquivos pesados em pedaços, envio massivo de logs de telemetria de dispositivos IoT e processamento de dados em lote (batch processing).
 
@@ -87,6 +87,6 @@ Ambos os lados mantêm streams abertos e independentes simultaneamente (full-dup
 rpc Chat (stream ChatMessage) returns (stream ChatMessage);
 ```
 
-**Evidência:** Implementação e instruções em `demo/README.md`. A evidência real está capturada em `docs/evidencias/chat-demo.txt`, demonstrando que o cliente envia mensagens iterativas e o servidor responde instantaneamente sem aguardar o fim do envio do cliente.
+**Evidência:** Implementação e instruções em `demo/README.md`. A evidência real está capturada em `docs/evidencias/prints/print-11_bidirectional.png`, demonstrando que o cliente envia mensagens iterativas e o servidor responde instantaneamente sem aguardar o fim do envio do cliente.
 
 **Conclusão e Uso:** É a evolução definitiva sobre WebSockets. Utilizado obrigatoriamente em sistemas onde a comunicação assíncrona nos dois sentidos é vital: jogos multiplayer online, sistemas de chat real-time, videoconferências e plataformas de edição colaborativa simultânea (ex: Google Docs).
