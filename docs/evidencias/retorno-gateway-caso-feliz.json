@@ -1,0 +1,192 @@
+{
+  "packages": [
+    {
+      "packageId": "PKG-FL-0740-HTL-0482",
+      "outboundFlight": {
+        "flightId": "FL-0740",
+        "airline": "Azul",
+        "origin": "BSB",
+        "destination": "GIG",
+        "departureTime": "2026-06-12T01:23:03Z",
+        "arrivalTime": "2026-06-12T02:23:03Z",
+        "durationMinutes": 60,
+        "price": {
+          "currency": "BRL",
+          "amountCents": 26223
+        },
+        "availableSeats": 150
+      },
+      "returnFlight": null,
+      "hotel": {
+        "hotelId": "HTL-0482",
+        "name": "Hotel Suites 482",
+        "city": "GIG",
+        "stars": 3,
+        "pricePerNight": {
+          "currency": "BRL",
+          "amountCents": 10063
+        },
+        "availableRooms": 31,
+        "amenities": [
+          "wifi"
+        ]
+      },
+      "nights": 5,
+      "totalPrice": {
+        "currency": "BRL",
+        "amountCents": 126853
+      }
+    },
+    {
+      "packageId": "PKG-FL-0740-HTL-0863",
+      "outboundFlight": {
+        "flightId": "FL-0740",
+        "airline": "Azul",
+        "origin": "BSB",
+        "destination": "GIG",
+        "departureTime": "2026-06-12T01:23:03Z",
+        "arrivalTime": "2026-06-12T02:23:03Z",
+        "durationMinutes": 60,
+        "price": {
+          "currency": "BRL",
+          "amountCents": 26223
+        },
+        "availableSeats": 150
+      },
+      "returnFlight": null,
+      "hotel": {
+        "hotelId": "HTL-0863",
+        "name": "Hotel Inn 863",
+        "city": "GIG",
+        "stars": 1,
+        "pricePerNight": {
+          "currency": "BRL",
+          "amountCents": 10477
+        },
+        "availableRooms": 2,
+        "amenities": [
+          "wifi"
+        ]
+      },
+      "nights": 5,
+      "totalPrice": {
+        "currency": "BRL",
+        "amountCents": 130993
+      }
+    },
+    {
+      "packageId": "PKG-FL-0740-HTL-0097",
+      "outboundFlight": {
+        "flightId": "FL-0740",
+        "airline": "Azul",
+        "origin": "BSB",
+        "destination": "GIG",
+        "departureTime": "2026-06-12T01:23:03Z",
+        "arrivalTime": "2026-06-12T02:23:03Z",
+        "durationMinutes": 60,
+        "price": {
+          "currency": "BRL",
+          "amountCents": 26223
+        },
+        "availableSeats": 150
+      },
+      "returnFlight": null,
+      "hotel": {
+        "hotelId": "HTL-0097",
+        "name": "Hotel Plaza 97",
+        "city": "GIG",
+        "stars": 3,
+        "pricePerNight": {
+          "currency": "BRL",
+          "amountCents": 10797
+        },
+        "availableRooms": 46,
+        "amenities": [
+          "wifi",
+          "breakfast"
+        ]
+      },
+      "nights": 5,
+      "totalPrice": {
+        "currency": "BRL",
+        "amountCents": 134193
+      }
+    },
+    {
+      "packageId": "PKG-FL-0027-HTL-0482",
+      "outboundFlight": {
+        "flightId": "FL-0027",
+        "airline": "Latam",
+        "origin": "BSB",
+        "destination": "GIG",
+        "departureTime": "2026-06-13T19:23:03Z",
+        "arrivalTime": "2026-06-13T23:23:03Z",
+        "durationMinutes": 240,
+        "price": {
+          "currency": "BRL",
+          "amountCents": 35018
+        },
+        "availableSeats": 108
+      },
+      "returnFlight": null,
+      "hotel": {
+        "hotelId": "HTL-0482",
+        "name": "Hotel Suites 482",
+        "city": "GIG",
+        "stars": 3,
+        "pricePerNight": {
+          "currency": "BRL",
+          "amountCents": 10063
+        },
+        "availableRooms": 31,
+        "amenities": [
+          "wifi"
+        ]
+      },
+      "nights": 5,
+      "totalPrice": {
+        "currency": "BRL",
+        "amountCents": 135648
+      }
+    },
+    {
+      "packageId": "PKG-FL-0567-HTL-0482",
+      "outboundFlight": {
+        "flightId": "FL-0567",
+        "airline": "Emirates",
+        "origin": "BSB",
+        "destination": "GIG",
+        "departureTime": "2026-06-15T17:23:03Z",
+        "arrivalTime": "2026-06-15T21:23:03Z",
+        "durationMinutes": 240,
+        "price": {
+          "currency": "BRL",
+          "amountCents": 37479
+        },
+        "availableSeats": 76
+      },
+      "returnFlight": null,
+      "hotel": {
+        "hotelId": "HTL-0482",
+        "name": "Hotel Suites 482",
+        "city": "GIG",
+        "stars": 3,
+        "pricePerNight": {
+          "currency": "BRL",
+          "amountCents": 10063
+        },
+        "availableRooms": 31,
+        "amenities": [
+          "wifi"
+        ]
+      },
+      "nights": 5,
+      "totalPrice": {
+        "currency": "BRL",
+        "amountCents": 138109
+      }
+    }
+  ],
+  "totalCombinationsEvaluated": 2128,
+  "searchTimeMs": 33
+}
