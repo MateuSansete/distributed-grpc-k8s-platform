@@ -18,12 +18,30 @@ spec:
       labels:
         app: hotel-service
     spec:
+      # Espera a massa de dados ser gerada (Job data-generator) antes de subir.
+      # Sem isto o load do hotels_db.json falha no import e o pod entra em CrashLoop.
+      initContainers:
+        - name: wait-for-data
+          image: busybox:1.36
+          imagePullPolicy: IfNotPresent
+          command: ["sh", "-c", "until [ -f /data/hotels_db.json ]; do echo 'aguardando hotels_db.json...'; sleep 2; done"]
+          volumeMounts:
+            - name: travel-data
+              mountPath: /data
       containers:
         - name: hotel-service
           image: hotel-service:latest
           imagePullPolicy: Never
           ports:
             - containerPort: 50052
+          volumeMounts:
+            - name: travel-data
+              mountPath: /data
+              readOnly: true
+      volumes:
+        - name: travel-data
+          persistentVolumeClaim:
+            claimName: travel-data
 ---
 apiVersion: v1
 kind: Service

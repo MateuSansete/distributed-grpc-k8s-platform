@@ -141,11 +141,21 @@ minikube version
 
 ```
 k8s/
+├── data.yaml       # PVC + ConfigMap (gerador) + Job que popula a massa de dados
 ├── flight.yaml     # Deployment + Service para o Serviço A (FlightService)
 ├── hotel.yaml      # Deployment + Service para o Serviço B (HotelService)
 ├── gateway.yaml    # Deployment + Service para o Módulo P (Gateway)
 └── frontend.yaml   # ConfigMap (nginx) + Deployment + Service para o Frontend
 ```
+
+> **Sobre os dados (`data.yaml`):** as imagens de A e B **não** embutem os
+> arquivos `flights_db.json`/`hotels_db.json`. No K8s eles são gerados **uma
+> vez** por um `Job` (`data-generator`) que escreve num volume compartilhado
+> (`PersistentVolumeClaim travel-data`), montado em `/data` nos pods A e B.
+> Cada pod A/B tem um `initContainer` que **espera** o arquivo existir antes de
+> subir — por isso a ordem do `kubectl apply` não importa. Para regenerar com
+> outro tamanho: `kubectl delete job data-generator` e reaplique (ou edite o
+> `--size` em `data.yaml`).
 
 Cada arquivo segue o padrão:
 ```yaml
@@ -229,6 +239,9 @@ kubectl apply -f k8s/
 
 Saída esperada:
 ```
+persistentvolumeclaim/travel-data created
+configmap/data-generator-script created
+job.batch/data-generator created
 deployment.apps/flight-service created
 service/flight-service created
 deployment.apps/hotel-service created
@@ -239,6 +252,10 @@ configmap/nginx-frontend-config created
 deployment.apps/frontend created
 service/frontend-service created
 ```
+
+> Na primeira vez, A e B ficam em `Init:0/1` por alguns segundos enquanto o
+> `Job data-generator` gera a massa de dados. Assim que os JSONs aparecem no
+> volume, os `initContainers` liberam e os pods passam para `Running`.
 
 ### 6.5 Verificar se tudo subiu
 
@@ -252,12 +269,16 @@ kubectl get pods
 
 Saída esperada (todos `Running`):
 ```
-NAME                               READY   STATUS    RESTARTS   AGE
-flight-service-7d8b9c4f6-x2k9p    1/1     Running   0          90s
-hotel-service-6f9d8c7b5-m3j2q     1/1     Running   0          90s
-gateway-5c8f7b6d4-k1p8n           1/1     Running   0          75s
-frontend-4b7c6d5f3-n2m9r          1/1     Running   0          90s
+NAME                               READY   STATUS      RESTARTS   AGE
+data-generator-q7w2e               0/1     Completed   0          95s
+flight-service-7d8b9c4f6-x2k9p    1/1     Running     0          90s
+hotel-service-6f9d8c7b5-m3j2q     1/1     Running     0          90s
+gateway-5c8f7b6d4-k1p8n           1/1     Running     0          75s
+frontend-4b7c6d5f3-n2m9r          1/1     Running     0          90s
 ```
+
+O pod `data-generator` aparece como `Completed` — é o `Job` que já terminou de
+popular o volume. Isso é esperado, não é erro.
 
 Verifique os Services também:
 ```bash

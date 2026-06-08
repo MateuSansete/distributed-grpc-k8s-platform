@@ -1,0 +1,15 @@
+# Override OPCIONAL: publica as portas gRPC de A e B no host.
+#
+# Por padrão o docker-compose.yml só "expõe" 50051/50052 na rede interna.
+# Para rodar os testes de streaming em grpc_tests/ (scripts Node que batem em
+# localhost:50051 e localhost:50052) é preciso publicar essas portas no host.
+#
+# Uso (apenas durante os testes do item B.1):
+#   docker compose -f docker-compose.yml -f docker-compose.grpc-ports.yml up -d
+services:
+  flight:
+    ports:
+      - "50051:50051"
+  hotel:
+    ports:
+      - "50052:50052"

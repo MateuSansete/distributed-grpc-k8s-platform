@@ -1,0 +1,142 @@
+# Massa de dados compartilhada (voos + hotéis)
+#
+# POR QUE ISSO EXISTE:
+#   Os serviços A (flight) e B (hotel) leem /data/flights_db.json e
+#   /data/hotels_db.json. As imagens NÃO embutem esses arquivos (no
+#   docker-compose eles vêm de um volume + data-generator). No K8s a solução
+#   equivalente é: gerar os dados UMA vez num volume compartilhado
+#   (PersistentVolumeClaim) e montar esse mesmo volume em A e B. Sem isto,
+#   os pods A/B falham no load do JSON e entram em CrashLoopBackOff.
+#
+# COMPONENTES:
+#   1. PersistentVolumeClaim: o "disco" compartilhado, montado em /data.
+#   2. ConfigMap: cópia de scripts/generate_data.py (fonte da verdade no repo).
+#   3. Job: roda o gerador uma vez e popula o volume; depois encerra.
+#
+# Os pods A/B esperam os arquivos existirem via um initContainer (ver flight.yaml).
+
+---
+# 1. Volume compartilhado
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: travel-data
+spec:
+  accessModes:
+    - ReadWriteOnce   # Minikube é nó único: vários pods no mesmo nó montam normalmente
+  resources:
+    requests:
+      storage: 256Mi
+
+---
+# 2. Script gerador (espelho de scripts/generate_data.py — mantenha em sincronia)
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: data-generator-script
+data:
+  generate_data.py: |
+    import json
+    import os
+    import argparse
+    import sys
+    import random
+    from datetime import datetime, timedelta, timezone
+
+    def get_dataset_size():
+        parser = argparse.ArgumentParser(description="Gerador de massa de dados.")
+        parser.add_argument('--size', type=int, default=1000,
+                            help="Quantidade de registros a gerar (min: 500, max: 20000)")
+        args = parser.parse_args()
+        if not (500 <= args.size <= 20000):
+            print(f"Erro: O tamanho {args.size} esta fora dos limites (500 a 20000).", file=sys.stderr)
+            sys.exit(1)
+        return args.size
+
+    def generate_static_database():
+        base_dir = os.path.dirname(os.path.abspath(__file__))
+        data_dir = os.path.join(base_dir, '..', 'data')
+        os.makedirs(data_dir, exist_ok=True)
+
+        airlines = ["Latam", "Gol", "Azul", "Avianca", "Emirates"]
+        airports = ["BSB", "GIG", "GRU", "SDU", "CNF", "REC", "SSA"]
+        adjectives = ["Palace", "Resort", "Plaza", "Inn", "Suites"]
+        now = datetime.now(timezone.utc)
+
+        flights = []
+        for i in range(1, tamanho_base + 1):
+            days_ahead = random.randint(0, 30)
+            dep_dt = now + timedelta(days=days_ahead, hours=random.randint(1, 23))
+            arr_dt = dep_dt + timedelta(hours=random.randint(1, 5))
+            origin = random.choice(airports)
+            destination = random.choice(airports)
+            while origin == destination:
+                destination = random.choice(airports)
+            flights.append({
+                "flight_id": f"FL-{i:04d}",
+                "airline": random.choice(airlines),
+                "origin": origin,
+                "destination": destination,
+                "departure_time": dep_dt.strftime('%Y-%m-%dT%H:%M:%SZ'),
+                "arrival_time": arr_dt.strftime('%Y-%m-%dT%H:%M:%SZ'),
+                "duration_minutes": int((arr_dt - dep_dt).total_seconds() / 60),
+                "price": {"currency": "BRL", "amount_cents": random.randint(20000, 150000)},
+                "available_seats": random.randint(5, 150)
+            })
+
+        hotels = []
+        for i in range(1, tamanho_base + 1):
+            hotels.append({
+                "hotel_id": f"HTL-{i:04d}",
+                "name": f"Hotel {random.choice(adjectives)} {i}",
+                "city": random.choice(airports),
+                "stars": random.randint(1, 5),
+                "price_per_night": {"currency": "BRL", "amount_cents": random.randint(10000, 80000)},
+                "available_rooms": random.randint(1, 50),
+                "amenities": ["wifi", "breakfast"] if random.choice([True, False]) else ["wifi"]
+            })
+
+        flights_path = os.path.join(data_dir, 'flights_db.json')
+        hotels_path = os.path.join(data_dir, 'hotels_db.json')
+        with open(flights_path, 'w', encoding='utf-8') as f:
+            json.dump(flights, f, indent=2, ensure_ascii=False)
+        with open(hotels_path, 'w', encoding='utf-8') as f:
+            json.dump(hotels, f, indent=2, ensure_ascii=False)
+        print(f"[Gerador] Exportados {len(flights)} voos para: {flights_path}")
+        print(f"[Gerador] Exportados {len(hotels)} hoteis para: {hotels_path}")
+
+    if __name__ == '__main__':
+        tamanho_base = get_dataset_size()
+        print(f"Iniciando geracao de {tamanho_base} registros...")
+        generate_static_database()
+
+---
+# 3. Job que popula o volume uma vez
+#   Script montado em /scripts; volume em /data. O gerador escreve em
+#   /scripts/../data -> resolve para /data (mesma lógica do docker-compose).
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: data-generator
+spec:
+  backoffLimit: 3
+  template:
+    spec:
+      restartPolicy: OnFailure
+      containers:
+        - name: data-generator
+          image: python:3.11-slim
+          imagePullPolicy: IfNotPresent
+          command: ["python", "/scripts/generate_data.py", "--size", "1000"]
+          volumeMounts:
+            - name: script
+              mountPath: /scripts
+            - name: data
+              mountPath: /data
+      volumes:
+        - name: script
+          configMap:
+            name: data-generator-script
+        - name: data
+          persistentVolumeClaim:
+            claimName: travel-data

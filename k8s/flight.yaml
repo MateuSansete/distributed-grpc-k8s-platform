@@ -20,12 +20,30 @@ spec:
       labels:
         app: flight-service
     spec:
+      # Espera a massa de dados ser gerada (Job data-generator) antes de subir.
+      # Sem isto o load do flights_db.json falha no import e o pod entra em CrashLoop.
+      initContainers:
+        - name: wait-for-data
+          image: busybox:1.36
+          imagePullPolicy: IfNotPresent
+          command: ["sh", "-c", "until [ -f /data/flights_db.json ]; do echo 'aguardando flights_db.json...'; sleep 2; done"]
+          volumeMounts:
+            - name: travel-data
+              mountPath: /data
       containers:
         - name: flight-service
           image: flight-service:latest
           imagePullPolicy: Never   # usa imagem local do Minikube (não busca no Docker Hub)
           ports:
             - containerPort: 50051
+          volumeMounts:
+            - name: travel-data
+              mountPath: /data
+              readOnly: true
+      volumes:
+        - name: travel-data
+          persistentVolumeClaim:
+            claimName: travel-data
 ---
 apiVersion: v1
 kind: Service

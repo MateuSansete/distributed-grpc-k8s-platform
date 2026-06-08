@@ -9,7 +9,7 @@ WORKDIR /workspace
 COPY proto ./proto
 COPY p ./p
 WORKDIR /workspace/p
-RUN chmod +x gradlew && ./gradlew --no-daemon clean bootJar -x test
+RUN sed -i 's/\r$//' gradlew && chmod +x gradlew && ./gradlew --no-daemon clean bootJar -x test
 
 # --- runtime ---
 FROM eclipse-temurin:21-jre
