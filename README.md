@@ -10,12 +10,29 @@ A aplicação consiste em um agregador de viagens que combina dados de voos e ho
 
 ## 🏗️ Arquitetura (Visão Geral)
 
-![Diagrama da Arquitetura](assets/arq  .png)
+```
+   Browser (HClient)
+        │ HTTP/REST
+        ▼
+ ┌──────────────────┐
+ │  Módulo P        │  Gateway (Java/Spring Boot)
+ │  REST ⇄ gRPC     │  expõe REST ao browser, fala gRPC com A e B
+ └───────┬──────────┘
+   gRPC  │  HTTP/2
+   ┌─────┴─────┐
+   ▼           ▼
+┌────────┐  ┌────────┐
+│Módulo A│  │Módulo B│   Serviços gRPC (Python)
+│ Voos   │  │ Hotéis │
+└────────┘  └────────┘
+```
+
+> Diagrama detalhado do deploy no cluster em [`docs/kubernetes.md`](docs/kubernetes.md).
 
 ## 🛠️ Tecnologias
 * **Comunicação:** gRPC (Protobuf, HTTP/2) vs. REST-API (JSON, HTTP/1.1)
 * **Infraestrutura:** Docker, Kubernetes (Minikube)
-* **Linguagens:** *[Insira aqui as linguagens que escolheram, ex: Python, Go, Node.js]*
+* **Linguagens:** Java 21 / Spring Boot (Módulo P — Gateway), Python (Módulos A e B), React (frontend HClient)
 
 ## 👥 Equipe e Responsabilidades
 * **Artur:** Infraestrutura e Kubernetes (HServ)
@@ -26,8 +43,9 @@ A aplicação consiste em um agregador de viagens que combina dados de voos e ho
 * **Carlos e Guilherme:** Relatório e Slides
 
 ## 🚀 Status
-- [ ] Definição do contrato (.proto)
-- [ ] Desenvolvimento dos Módulos (P, A, B)
-- [ ] Implementação da versão REST para benchmark
-- [ ] Deploy no Kubernetes
-- [ ] Testes de Performance e Relatório Final
+- [x] Definição do contrato (.proto)
+- [x] Desenvolvimento dos Módulos (P, A, B) + frontend
+- [x] Implementação da versão REST para benchmark
+- [x] Deploy no Kubernetes (Minikube) — ver [`docs/kubernetes.md`](docs/kubernetes.md)
+- [x] Testes de Performance — ver [`docs/performance.md`](docs/performance.md)
+- [ ] Relatório final e slides
